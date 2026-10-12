@@ -9,8 +9,8 @@
   config = {
     environment.systemPackages = with pkgs; [
       # Containers.
-      podman-compose
-      podman-tui
+      # podman-compose # Fresh-build failures. # TODO: Come back to this.
+      # podman-tui # Fresh-build failures. # TODO: Come back to this.
       dive
     ];
 
