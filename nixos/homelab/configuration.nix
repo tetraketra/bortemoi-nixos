@@ -48,10 +48,10 @@
   };
 
   boot.zfs.devNodes = "/dev/disk/by-id";
+  boot.supportedFilesystems = [ "zfs" ];
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
   boot.loader.grub.enable = false;
-  boot.supportedFilesystems = [ "zfs" ];
   networking.hostName = "homelab";
   networking.hostId = "6b6c9563";
 
@@ -94,10 +94,10 @@
 
   services.openssh = {
     enable = true;
-    settings = {
-      PermitRootLogin = "prohibit-password";
-      PasswordAuthentication = false;
-    };
+    # settings = {
+    #   PermitRootLogin = "prohibit-password";
+    #   PasswordAuthentication = false;
+    # };
   };
 
   security.polkit.enable = true;

@@ -141,6 +141,9 @@
     };
   };
 
+  boot.zfs.extraPools = [ "epool" ];
+  boot.zfs.forceImportRoot = false;
+
   users.groups.grafana.members = [ "bortemoi" ];
   users.groups.immich.members = [ "bortemoi" ];
   users.groups.navidrome.members = [ "bortemoi" ];
