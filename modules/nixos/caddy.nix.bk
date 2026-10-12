@@ -1,0 +1,83 @@
+[bortemoi@homelab][~/nixos-config][main~1]$ cat modules/nixos/caddy.nix
+{
+  lib,
+  pkgs,
+  config,
+  ...
+}:
+let
+  cfg = config.my.caddy;
+  makeSetup = pkgs.lib.my.helpers.makeSetup;
+in
+{
+  options.my.caddy.enable = lib.mkEnableOption "My custom Caddy reverse proxy.";
+  options.my.caddy.zfs = lib.mkEnableOption "Whether to integrate with ZFS.";
+  options.my.caddy.logDir = lib.mkOption {
+    type = lib.types.str;
+    description = "Directory to log to.";
+  };
+
+  config = lib.mkIf cfg.enable {
+    systemd.tmpfiles.rules = lib.mkAfter [ "d /mnt/extra/logs/caddy 0750 caddy caddy -" ];
+    systemd.services."caddy-setup" = {
+      description = "Create caddy directory: /mnt/extra/logs/caddy.";
+      wantedBy = [ "caddy.service" ];
+      after = lib.optionals cfg.zfs [ "zfs-mount.service" ];
+      requiredBy = [ "caddy.service" ];
+      serviceConfig = {
+        Type = "oneshot";
+        RemainAfterExit = true;
+        ExecStart = pkgs.writers.writeBash "create-caddy-dir" ''
+          mkdir -p /mnt/extra/logs/caddy
+          chown -R caddy:caddy /mnt/extra/logs/caddy
+        '';
+      };
+    };
+    systemd.services.caddy = {
+      after = [ "caddy-setup.service" ] ++ lib.optionals cfg.zfs [ "zfs-mount.service" ];
+      requires = [ "caddy-setup.service" ] ++ lib.optionals cfg.zfs [ "zfs-mount.service" ];
+      serviceConfig.ReadWritePaths = [ cfg.logDir ];
+    };
+    services.caddy = {
+      enable = true;
+      package = pkgs.caddy.withPlugins {
+        plugins = [
+          "github.com/caddyserver/cache-handler@v0.17.0"
+          "github.com/caddy-dns/cloudflare@v0.2.4"
+        ];
+        hash = "sha256-BjH8Ocyd7fHGVeSYs/nzngAp92vXJDyiynXUFguaJNI=";
+      };
+      globalConfig = ''
+        order cache before rewrite
+        cache {
+          badger {
+            path /var/lib/caddy/cache/badger
+          }
+          ttl 5m
+        }
+
+        log zfs_dataset {
+          output file ${cfg.logDir}/access.log {
+            roll_size 100mb
+            roll_keep 5
+            roll_keep_for 100d
+          }
+          level INFO
+          format json
+          format filter {
+            wrap json
+            fields {
+              request>headers>X-Api-Key delete
+              request>headers>X-Auth-Token delete
+              request>uri query {
+                delete access_token
+                replace password "[REDACTED]"
+              }
+              request>remote_ip ip_mask 
+            }
+          }
+        }
+      '';
+    };
+  };
+}

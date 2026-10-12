@@ -1,0 +1,5 @@
+# NixOS
+result
+result/**
+*.qcow2
+result
