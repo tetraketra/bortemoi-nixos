@@ -115,26 +115,26 @@
         options.ashift = "12";
 
         rootFsOptions = {
-          mountpoint = "none";
+          options.mountpoint = "none";
           compression = "lz4";
         };
 
         datasets = {
           grafana = {
             type = "zfs_fs";
-            mountpoint = "/mnt/grafana";
+            options.mountpoint = "/mnt/grafana";
           };
           immich = {
             type = "zfs_fs";
-            mountpoint = "/mnt/immich";
+            options.mountpoint = "/mnt/immich";
           };
           navidrome = {
             type = "zfs_fs";
-            mountpoint = "/mnt/navidrome";
+            options.mountpoint = "/mnt/navidrome";
           };
           forgejo = {
             type = "zfs_fs";
-            mountpoint = "/mnt/forgejo";
+            options.mountpoint = "/mnt/forgejo";
           };
         };
       };
@@ -142,7 +142,7 @@
   };
 
   boot.zfs.extraPools = [ "epool" ];
-  boot.zfs.forceImportRoot = false;
+  # boot.zfs.forceImportRoot = false;
 
   users.groups.grafana.members = [ "bortemoi" ];
   users.groups.immich.members = [ "bortemoi" ];
