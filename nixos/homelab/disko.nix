@@ -116,6 +116,7 @@
 
         rootFsOptions = {
           options.mountpoint = "none";
+          mountpoint = "none";
           compression = "lz4";
         };
 
